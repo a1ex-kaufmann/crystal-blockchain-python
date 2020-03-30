@@ -2,7 +2,7 @@ import requests
 
 from abc import ABC
 
-from .modules import Profile, Customer, Transfers
+from .modules import Profile, Customer, Transfers, BatchTransfers
 
 
 class Crystal(ABC):
@@ -13,12 +13,14 @@ class Crystal(ABC):
     __MODULES = {
         'profile': Profile,
         'customer': Customer,
-        'transfers': Transfers
+        'transfers': Transfers,
+        'batch_transfers': BatchTransfers,
     }
 
     profile: Profile
     customer: Customer
     transfers: Transfers
+    batch_transfers: BatchTransfers
 
     def __init__(self, api_key):
         self.__api_key = api_key
@@ -29,7 +31,7 @@ class Crystal(ABC):
 
         Crystal.__attach_modules(self, self.__MODULES)
 
-    def session(self):
+    def session(self) -> requests.Session:
         if not self.__session:
             self.__session = requests.Session()
             self.__session.headers.update(self.__headers)

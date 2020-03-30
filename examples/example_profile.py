@@ -1,3 +1,7 @@
+"""
+See 'Profile' at https://expert.crystalblockchain.com/docs/api
+"""
+
 from pprint import pprint
 
 from crystal_blockchain import CrystalBTC, CrystalLTC, CrystalBCH, CrystalUSDT, CrystalETH
@@ -8,11 +12,11 @@ crystal_btc = CrystalBTC(API_KEY)
 
 # pprint(crystal_btc.profile.get_profiles())
 
-# pprint(crystal_btc.profile.get_profile_details(110))
+# pprint(crystal_btc.profile.get_profile_details(111))
 
-# pprint(crystal_btc.profile.edit_profile(110, 'alex', 'testDesc'))
+# pprint(crystal_btc.profile.edit_profile(111, 'alex', 'testDesc'))
 
-# pprint(crystal_btc.profile.delete_profile(110))
+# pprint(crystal_btc.profile.delete_profile(111))
 
 # pprint(crystal_btc.profile.enable_profile(111))
 

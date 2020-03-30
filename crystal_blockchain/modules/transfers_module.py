@@ -1,4 +1,5 @@
 from .base_module import Module
+from ..utils import check_type
 
 
 class Transfers(Module):
@@ -9,8 +10,12 @@ class Transfers(Module):
     _GET_TX_BOUNDS = '/monitor/one/{token}/tx-bounds'
     _EDIT_CUSTOMER_TXS = '/monitor/one/{token}/txs/execute'
 
-    _DIRECTIONS = ['deposit', 'withdrawal']
-    _FLAGS = ['flag', 'unflag']
+    _DIRECTIONS_1 = ('deposit', 'withdrawal')
+    _FLAGS = ('flag', 'unflag')
+    _WITH_TOTALS = (0, 1)
+    _ORDERS = ('amount', 'fiat', 'time', 'created_at', 'updated_at', 'riskscore')
+    _DIRECTIONS_2 = ('asc', 'desc')
+    _ACTIONS = ('schedule', 'archive', 'unarchive', 'flag', 'unflag')
 
     def add_tx_to_customer(self, tx: str, direction: str, address: str, name: str) -> dict:
         """
@@ -71,6 +76,12 @@ class Transfers(Module):
           }
         }
         """
+        check_type(tx, str)
+        if not (direction in self._DIRECTIONS_1):
+            raise ValueError('Check "direction" value')
+        check_type(address, str)
+        check_type(name, str)
+
         # Token identifier. Enter 1 for USDT transfers, otherwise enter 0 or delete this field.
         token_id = self._crystal.TOKEN_ID
 
@@ -95,8 +106,8 @@ class Transfers(Module):
         Moving transfers to archive or restoring from archive, flagging or unflaggind transfers
 
         :param transfer_id: Transfer id
-        :param archived: Select True to archive transfer and false to unarchive
-        :param flagged: True or Flalse
+        :param archived: Select True to archive transfer and False to unarchive
+        :param flagged: 'flag' or 'unflag'
         :return:
         {
           "meta": {
@@ -114,11 +125,17 @@ class Transfers(Module):
           }
         }
         """
+        check_type(transfer_id, str)
+
         params = {}
         if archived:
+            check_type(archived, bool)
             params['archived'] = archived
-        if flagged:
+        if flagged:  # NOTE: кажется, параметр не воспринимается в API
+            if not (flagged in self._FLAGS):
+                raise ValueError('Check "flagged" value')
             params['flagged'] = flagged
+
         response = self._crystal.session().post(
             url=self._to_endpoint(self._EDIT_TX.format(id=transfer_id)),
             params=params
@@ -175,6 +192,8 @@ class Transfers(Module):
           }
         }
         """
+        check_type(transfer_id, str)
+
         response = self._crystal.session().post(
             url=self._to_endpoint(self._UPDATE_TX.format(id=transfer_id)),
         )
@@ -197,7 +216,6 @@ class Transfers(Module):
         """
         Get list of transfers with applied filters
 
-
         :param token: Token corresponding to the customer
         :param with_total: number, default=0 (0 or 1)
         :param offset: number, default=0
@@ -207,19 +225,28 @@ class Transfers(Module):
         :param filter_dict: filter dictionary, see API
         :return:
         """
+        check_type(token, str)
+
         params = {}
 
         if with_total:
+            if with_total not in self._WITH_TOTALS:
+                raise ValueError('Check "with_total" value')
             params['with_total'] = with_total
         if offset:
             params['offset'] = offset
         if limit:
             params['limit'] = limit
         if order:
+            if order not in self._ORDERS:
+                raise ValueError('Check "order" value')
             params['order'] = order
         if direction:
+            if direction not in self._DIRECTIONS_2:
+                raise ValueError('Check "direction" value')
             params['direction'] = direction
         if filter_dict:
+            check_type(filter_dict, dict)
             params['filter'] = filter_dict
 
         response = self._crystal.session().post(
@@ -262,6 +289,8 @@ class Transfers(Module):
           }
         }
         """
+        check_type(token, str)
+
         response = self._crystal.session().get(
             url=self._to_endpoint(self._GET_TX_BOUNDS.format(token=token)),
         )
@@ -270,7 +299,7 @@ class Transfers(Module):
 
         return response.json()
 
-    def edit_costumer_txs(
+    def edit_customer_txs(
             self,
             token: str,
             action=None,
@@ -280,8 +309,8 @@ class Transfers(Module):
         Get minimum and maximum filtering parameters
 
         :param token: Token corresponding to the customer
-        :param action: Here you can specify the action [ schedule, archive, unarchive, flag, unflag ]
-        :param filter_dict: filter object (see API docs)
+        :param action: Here you can specify the action ('schedule', 'archive', 'unarchive', 'flag', 'unflag')
+        :param filter_dict: filter dict (see API docs)
         :return:
         {
             "data": {
@@ -307,8 +336,11 @@ class Transfers(Module):
         params = {}
 
         if action:
+            if not (action in self._ACTIONS):
+                raise ValueError('Check "action" value')
             params['action'] = action
         if filter_dict:
+            check_type(filter_dict, dict)
             params['filter'] = filter_dict
 
         response = self._crystal.session().post(

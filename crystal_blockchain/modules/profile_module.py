@@ -1,4 +1,5 @@
 from .base_module import Module
+from ..utils import check_type
 
 
 class Profile(Module):
@@ -10,12 +11,12 @@ class Profile(Module):
     _EDIT_ENTITY_TYPE = '/settings/riskscore/one/{profile_id}/{signal}'
     _RESET_SETTINGS = '/settings/riskscore/one/{profile_id}/reset'
 
-    _SIGNAL_LIST = [
+    _SIGNAL_LIST = (
         'atm', 'dark_market', 'dark_service', 'exchange', 'trusted_exchange', 'gambling', 'ransom',
         'marketplace', 'miner', 'mixer', 'payment', 'scam', 'wallet', 'stolen_coins', 'illegal_service'
-    ]
-    _RECV_LIST = ['none', 'low', 'mid', 'high']
-    _SENT_LIST = ['none', 'low', 'mid', 'high']
+    )
+    _RECV_LIST = ('none', 'low', 'mid', 'high')
+    _SENT_LIST = ('none', 'low', 'mid', 'high')
 
     def get_profiles(self) -> dict:
         """
@@ -70,6 +71,8 @@ class Profile(Module):
                   'riskscore_profile': {'id': 110, 'name': 'testName'},
                   'server_time': 1585295226}}
         """
+        check_type(profile_id, int)
+
         response = self._crystal.session().get(
             url=self._to_endpoint(self._GET_PROFILE_DETAILS.format(profile_id=profile_id)),
         )
@@ -93,6 +96,10 @@ class Profile(Module):
                   'riskscore_profile': {'id': 110, 'name': 'alex'},
                   'server_time': 1585297854}}
         """
+        check_type(profile_id, int)
+        check_type(name, str)
+        check_type(description, str)
+
         response = self._crystal.session().post(
             url=self._to_endpoint(self._EDIT_PROFILE.format(profile_id=profile_id)),
             params={
@@ -119,6 +126,8 @@ class Profile(Module):
                   'riskscore_profile': {'id': 0, 'name': 'Default'},
                   'server_time': 1585297926}}
         """
+        check_type(profile_id, int)
+
         response = self._crystal.session().delete(
             url=self._to_endpoint(self._DELETE_PROFILE.format(profile_id=profile_id)),
         )
@@ -141,6 +150,8 @@ class Profile(Module):
                   'riskscore_profile': {'id': 111, 'name': 'test'},
                   'server_time': 1585298143}}
         """
+        check_type(profile_id, int)
+
         response = self._crystal.session().post(
             url=self._to_endpoint(self._ENABLE_PROFILE.format(profile_id=profile_id)),
         )
@@ -170,23 +181,23 @@ class Profile(Module):
         # signal value validation
         signal = signal.lower()
         if signal and (signal not in self._SIGNAL_LIST):
-            raise ValueError('Check signal value')
+            raise ValueError('Check "signal" value')
 
         # other params validation
         params = {}
         if risk_score:
             if not (0 <= risk_score <= 1):
-                raise ValueError('Check risk_score value')
+                raise ValueError('Check "risk_score" value')
             params['riskscore'] = risk_score
         if recv:
             recv = recv.lower()
             if not (recv in self._RECV_LIST):
-                raise ValueError('Check recv value')
+                raise ValueError('Check "recv" value')
             params['recv'] = recv
         if sent:
             sent = sent.lower()
             if not (sent in self._SENT_LIST):
-                raise ValueError('Check sent value')
+                raise ValueError('Check "sent" value')
             params['sent'] = sent
 
         response = self._crystal.session().post(
@@ -198,7 +209,7 @@ class Profile(Module):
 
         return response.json()
 
-    def reset_settings(self, profile_id):
+    def reset_settings(self, profile_id: int) -> dict:
         """
         Method resets Risk Score profile settings to the default settings created by Crystal team
 
@@ -211,6 +222,8 @@ class Profile(Module):
                   'riskscore_profile': {'id': 111, 'name': 'test'},
                   'server_time': 1585299020}}
         """
+        check_type(profile_id, int)
+
         response = self._crystal.session().post(
             url=self._to_endpoint(self._RESET_SETTINGS.format(profile_id=profile_id)),
         )
