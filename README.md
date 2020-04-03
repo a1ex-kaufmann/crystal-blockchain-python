@@ -2,7 +2,8 @@
 
 Crystal-blockchain python wrap
 
-###Examples of using
+### Examples of using
+
 0. go to `/examples`
 1. `cp ./config.example.py ./config.py`
 2. edit API_KEY in config.py
