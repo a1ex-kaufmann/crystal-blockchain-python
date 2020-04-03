@@ -247,10 +247,10 @@ class Transfers(Module):
             params['direction'] = direction
         if filter_dict:
             check_type(filter_dict, dict)
-            params['filter'] = filter_dict
-
+            params['filter'] = self._filter_to_str(filter_dict)
         response = self._crystal.session().post(
             url=self._to_endpoint(self._GET_CUSTOMER_TXS.format(token=token)),
+            params=params
         )
 
         self._raise_for_error(response)
@@ -341,7 +341,7 @@ class Transfers(Module):
             params['action'] = action
         if filter_dict:
             check_type(filter_dict, dict)
-            params['filter'] = filter_dict
+            params['filter'] = self._filter_to_str(filter_dict)
 
         response = self._crystal.session().post(
             url=self._to_endpoint(self._EDIT_CUSTOMER_TXS.format(token=token)),

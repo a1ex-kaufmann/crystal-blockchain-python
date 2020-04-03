@@ -34,3 +34,11 @@ class Module(ABC):
 
     def _to_endpoint(self, route: str):
         return parse.urljoin(self._crystal.ENDPOINT, route)
+
+    @staticmethod
+    def _filter_to_str(filter_dict: dict) -> str:
+        """
+        wtf, this api requires a string instead of a json object (python dict) in filters
+        """
+        res_str = str(filter_dict).replace('{', '').replace('}', '').replace(' ', '').replace("'", "")
+        return res_str
