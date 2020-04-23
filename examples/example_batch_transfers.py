@@ -4,7 +4,7 @@ See 'Batch Transfers' at https://expert.crystalblockchain.com/docs/api
 
 from pprint import pprint
 
-from crystal_blockchain import CrystalBTC, CrystalLTC, CrystalBCH, CrystalUSDT, CrystalETH
+from crystal_blockchain import CrystalBTC, CrystalLTC, CrystalBCH, CrystalETH
 from examples.config import API_KEY
 
 

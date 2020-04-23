@@ -6,9 +6,9 @@ class CrystalBTC(Crystal):
     TOKEN_ID = 0
 
 
-class CrystalUSDT(Crystal):
-    ENDPOINT = 'https://apibtc.crystalblockchain.com'
-    TOKEN_ID = 1
+# class CrystalUSDT(Crystal):
+#     ENDPOINT = 'https://apibtc.crystalblockchain.com'
+#     TOKEN_ID = 1
 
 
 class CrystalETH(Crystal):

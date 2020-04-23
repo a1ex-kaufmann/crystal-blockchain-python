@@ -1,0 +1,1547 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "version": "2.0.0",
+    "title": "Crystal API",
+    "description": "The document describes Crystal API endpoints related to the BTC and BCH address summary, entity summary and transaction summary. They provide basic address, entity or transaction details, overview of its activity based on blockchain and offchain data, and Risk Score value computed by our system. Documentation related to ETH endpoints may be accessed by switching the currency or via the [link ](https://express.crystalblockchain.com/eth/docs/api). <br>\n  * For endpoints related to Bitcoin please use the server **https://apiexpress.crystalblockchain.com** <br>\n  \n  * For endpoints related to Bitcoin Cash please use the server **https://apibch.crystalblockchain.com** <br>\n\n**Risk Score** is a metric that helps estimate the chance that an entity, address or transaction is related to illegal activity. With help of our clustering algorithm we grouped the addresses into clusters. We collected data from various resources on the Internet and connected part of the clusters to the real-world entities. After that we manually assigned each of the known entities an expert estimate of the Risk Score value and the entity type.\n\nAfter that we calculated the degree of influence of each entity type on all addresses. For this we perform three runs of label propagation algorithm to assign each address three sets of signals:\n  * Non-directional signals – they are calculated based on the weighted graph of\ntransactions between clusters, where the weight of the edge is the amount sent and received between two clusters\n\n  * Sending signals – they are calculated based on the weighted directed graph of\ntransactions between clusters, where the edges of the graph represent the direction of funds flow and the weight is the amount transferred. We consider only sending direction for calculating the signals\n\n  * Receiving signals – the graph is the same as for sending signals, but only receiving\nsignals are considered during Risk Score calculation.\n\nAfter that each address is assigned a Risk Score value based on the Risk Score profile selected (it is specified in the meta data of each response). <br> \n\nIn the API response, each entity, cluster and individual address receives Risk Score value and signals (the connection with all activity types) calculated based on the Risk Score profile settings and direction of transactions. Both value and signals are important when building your decision engine. Please note that if the address belongs to an entity or a cluster, its risk score is the same as the entity's Risk Score:\n  1.  The Risk Score value can range from 0 to 1, where 0 means that the entity is safe, and 1 means that the entity is involved in illegal activity. \n  2.  Signals represent the degree of influence of each activity type on the particular entity. Signals can range from 0 to 1, and the sum of components is equal to 1. The activity types are:\n      *  darknet marketplaces\n      *  darknet services\n      *  exchanges\n      *  gambling services\n      *  illegal services\n      *  miners\n      *  mixing services\n      *  online marketplaces\n      *  online wallets \n      *  payment processors\n      *  ransom\n      *  scam\n      *  stolen coins\n      *  trusted exchanges<br>\n      \n\n      \n**Risk Score of a transaction** is the maximum risk score value of the addresses, which participated in the transaction. The signals for the transaction are based on the amount of BTC sent or received by each entity in the transaction.\n"
+  },
+  "servers": [
+    {
+      "url": "https://apiexpress.crystalblockchain.com"
+    },
+    {
+      "url": "https://apibch.crystalblockchain.com"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Address Summary"
+    },
+    {
+      "name": "Entity Summary"
+    },
+    {
+      "name": "Transaction Summary"
+    },
+    {
+      "name": "List of entities"
+    },
+    {
+      "name": "Risk Score profiles",
+      "description": "Risk Score profile is a set of parameters for evaluating the Risk Score of addresses. You may use default profile, configured by Crystal team, or create your own profile. This section describes the endpoints for viewing, creating, editing and deleting Risk Score profiles."
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/explorer/address/{address_hash}": {
+      "get": {
+        "tags": [
+          "Address Summary"
+        ],
+        "summary": "This endpoint provides address details",
+        "operationId": "get_address_info",
+        "description": "This endpoint provides the data available for the address. It may be data obtained from the blockchain as well as the data collected from online sources or calculated by Crystal algorithms. It may be divided into several blocks:  <br>\n**Basic info** is the data, which was calculated from raw Blockchain data. It may be:\n    \n  * Balance\n    \n  * First activity\n    \n  * Last activity\n    \n  * Number of transactions\n\n**Owner** section provides the information about the address owner if it is known. The data contains:\n  * Owner's name\n  \n  * Type of entity\n\n**Risk Score** is calculated by our proprietary algorithm. It may be divided into 2 sections:\n  * Signals - the connections with various entity types\n    \n  * Value - the Risk Score value calculated by the algorithm. <br> \n\n\nThe Risk Score and Owner sections may be integrated in your system for KYC/AML procedures. \n",
+        "parameters": [
+          {
+            "name": "address_hash",
+            "in": "path",
+            "description": "BTC or BCH address",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "address",
+                        "balance",
+                        "first activity",
+                        "last activity",
+                        "n_tx",
+                        "received",
+                        "riskscore",
+                        "shared_balance",
+                        "shared_recv",
+                        "status",
+                        "topTxs"
+                      ],
+                      "properties": {
+                        "address": {
+                          "type": "string",
+                          "description": "BTC or BCH wallet",
+                          "example": "1EEqRvnS7XqMoXDcaGL7bLS3hzZi1qUZm1"
+                        },
+                        "balance": {
+                          "type": "integer",
+                          "description": "Current address balance",
+                          "example": 270426415527
+                        },
+                        "first_activity": {
+                          "type": "integer",
+                          "description": "The date of the first transaction in which current address received funds",
+                          "example": 1510788026
+                        },
+                        "last_activity": {
+                          "type": "integer",
+                          "description": "The date of the last transaction in which current address took part",
+                          "example": 1510788026
+                        },
+                        "n_tx": {
+                          "type": "integer",
+                          "description": "The number of transactions in which current address took part",
+                          "example": 1929
+                        },
+                        "owner": {
+                          "$ref": "#/components/schemas/Owner"
+                        },
+                        "received": {
+                          "type": "integer",
+                          "description": "The sum of outputs for all incoming transactions to the current address",
+                          "example": 11080792405980
+                        },
+                        "riskscore": {
+                          "$ref": "#/components/schemas/RiskscoreEntity"
+                        },
+                        "shared_balance": {
+                          "type": "integer",
+                          "description": "Value indicates address balance taking into account only its transactions as a member of a multisig wallet. Since at the moment it is not possible to detect participants of multisig wallet, there are less than 0.1% of addresses where this value is not 0"
+                        },
+                        "shared_recv": {
+                          "type": "integer",
+                          "description": "Sum received by an address as a member of a multisig wallet"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "inactive",
+                            "active"
+                          ],
+                          "description": "The metric reflecting address activity. Address is inactive if it has not taken part in any transaction for the last 90 days, otherwise it is active"
+                        },
+                        "top_Txs": {
+                          "type": "array",
+                          "description": "Provides top 5 transactions in which the address balance changed the most",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "block_time",
+                              "hash",
+                              "pool_time",
+                              "situational"
+                            ],
+                            "properties": {
+                              "block_time": {
+                                "type": "integer",
+                                "description": "The time when transaction was included to the blockchain",
+                                "example": 1521316572
+                              },
+                              "hash": {
+                                "type": "string",
+                                "description": "Transaction hash",
+                                "example": "96c2fff53622791391c07ce99d0e90b15085a63fddffc5e2430b2af71e9bb56c"
+                              },
+                              "pool_time": {
+                                "type": "integer",
+                                "example": 1521316234,
+                                "description": "The time when transaction was received by a node"
+                              },
+                              "situational": {
+                                "type": "object",
+                                "required": [
+                                  "delta"
+                                ],
+                                "properties": {
+                                  "delta": {
+                                    "description": "The difference between address balance before and after the transaction",
+                                    "type": "integer",
+                                    "example": 222047488711
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/entity/one/{slug}": {
+      "get": {
+        "tags": [
+          "Entity Summary"
+        ],
+        "summary": "This endpoint provides details about entity",
+        "description": "This endpoint provides the data available for the entities in our system, for example:\n* Number of addresses \n* Balance of the entity\n* First activity\n* Last activity\n* Type of the entity\n\nThe Risk Score value for the entity is assigned manually by the analysts and usually depends on the type of the entity. Miners have additional section with their mining statistics. You may get the list of all available entities using the endpoint **/entity/list**.<br> This endpoint may be used to check the balances and sizes of known entities to provide an overview of their activity. \n",
+        "operationId": "get_entity_one",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Entity identifier (URL valid entity name or entity ID, or cluster ID for entities with unknown owner). The list of entities can be found on Crystal Entities page.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "additional": {
+                          "description": "Applies only for miners",
+                          "type": "object",
+                          "properties": {
+                            "miner": {
+                              "type": "object",
+                              "properties": {
+                                "blocks": {
+                                  "type": "integer",
+                                  "example": 391,
+                                  "description": "Number of mined blocks"
+                                },
+                                "fee": {
+                                  "type": "integer",
+                                  "example": 94430376160,
+                                  "description": "Total fee received by the entity"
+                                },
+                                "reward": {
+                                  "type": "integer",
+                                  "description": "Reward received for mined blocks",
+                                  "example": 488750000000
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "balance": {
+                          "type": "integer",
+                          "example": 91506236848,
+                          "description": "The sum of balances of all addresses belonging to the entity"
+                        },
+                        "country": {
+                          "type": "string",
+                          "example": "us,gb",
+                          "description": "Countries where the entity is registered"
+                        },
+                        "fiat": {
+                          "type": "boolean",
+                          "example": true,
+                          "description": "The field specifies whether the entity accepts fiat currencies."
+                        },
+                        "first_activity": {
+                          "type": "integer",
+                          "example": 1509910518,
+                          "description": "Date of the first transaction, in which at least one address belonging to the entity took part"
+                        },
+                        "id": {
+                          "description": "Entity ID",
+                          "type": "integer",
+                          "example": 324027519
+                        },
+                        "last_activity": {
+                          "type": "integer",
+                          "description": "Date of the last transaction, in which at least one address belonging to the entity took part",
+                          "example": 1522997499
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Name of the entity",
+                          "example": "58COIN"
+                        },
+                        "riskscore": {
+                          "$ref": "#/components/schemas/RiskscoreEntity"
+                        },
+                        "size": {
+                          "type": "integer",
+                          "description": "Number of addresses belonging to the entity",
+                          "example": 6
+                        },
+                        "slug": {
+                          "type": "string",
+                          "description": "URL valid entity name",
+                          "example": "58COIN"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "active",
+                            "inactive"
+                          ],
+                          "description": "The metric reflecting entity activity. Entity is inactive if none of its addresses has taken part in any transaction for the last 90 days, otherwise it is active"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "dark_market",
+                            "dark_service",
+                            "exchange",
+                            "trusted_exchange",
+                            "gambling",
+                            "ransom",
+                            "marketplace",
+                            "miner",
+                            "mixer",
+                            "other",
+                            "payment",
+                            "scam",
+                            "wallet",
+                            "stolen_coins",
+                            "illegal_service"
+                          ],
+                          "example": "miner",
+                          "description": "Type of the entity"
+                        },
+                        "subtype": {
+                          "type": "string",
+                          "example": "Exchange"
+                        },
+                        "website": {
+                          "type": "string",
+                          "description": "Website associated with the entity",
+                          "example": "https://example.com/"
+                        }
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/explorer/tx/{tx_hash}": {
+      "get": {
+        "tags": [
+          "Transaction Summary"
+        ],
+        "summary": "This endpoint provides transaction details",
+        "description": "This endpoint contains all the data for a particular transaction. Firstly, it is blockchain data:\n  * Transaction inputs and outputs\n  * Block, where transaction was included\n  * Date when the transaction was broadcasted to the network and the block was mined\n  * Amount transferred and transaction fee\n  \nEach input and output has its Risk Score value calculated by our algorithm. Besides, transaction itself has its Risk Score value and signals. The value is the maximum Risk Score among the participants. It may be used by KYC/AML tools to decide whether funds from the transaction may be accepted, or should be frozen for further investigation.\n\nYou may also get extended Risk Score for the transaction. In this case you will also have average and maximum Risk Score for transaction inputs and outputs separately. This is usefull for example  when you receive a deposit, since you are interested only in the source of funds (transaction inputs).  \n  \n",
+        "operationId": "get_tx_info",
+        "parameters": [
+          {
+            "name": "tx_hash",
+            "in": "path",
+            "description": "transaction hash",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "untangle",
+            "in": "query",
+            "description": "enter 1 if you need untangled transaction",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "default": 0
+            }
+          },
+          {
+            "name": "riskscore",
+            "in": "query",
+            "description": "enter \"extended\" if you need maximum and average value for inputs and outputs of transaction",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "simple",
+                "extended"
+              ],
+              "default": "simple"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TxSummary"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/entity/list": {
+      "get": {
+        "tags": [
+          "List of entities"
+        ],
+        "summary": "This endpoint provides the list of entities",
+        "description": "This endpoint provides the list of all entities available in our database along with their type and Risk Score. It may be used for further requests using the endpoint **/entity/one/**.",
+        "operationId": "get_entity_list",
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 45976985,
+                            "description": "Internal entity identifier"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Huobi",
+                            "description": "Entity name"
+                          },
+                          "slug": {
+                            "type": "string",
+                            "example": "Huobi",
+                            "description": "URL valid entity name"
+                          },
+                          "type": {
+                            "type": "string",
+                            "example": "exchange",
+                            "description": "One of the 15 entity types"
+                          },
+                          "subtype": {
+                            "type": "string",
+                            "example": "Faucet"
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings/riskscore/list": {
+      "get": {
+        "tags": [
+          "Risk Score profiles"
+        ],
+        "summary": "This endpoint provides the list of Risk Score profiles",
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "author": {
+                            "type": "string",
+                            "example": "User for Guide",
+                            "description": "Name of profile creator"
+                          },
+                          "created_at": {
+                            "type": "integer",
+                            "example": 1564577357,
+                            "description": "Date of profile creation"
+                          },
+                          "id": {
+                            "type": "integer",
+                            "example": 166
+                          },
+                          "is_enabled": {
+                            "type": "boolean",
+                            "example": true
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Sample profile"
+                          },
+                          "updated_at": {
+                            "type": "integer",
+                            "example": 1565952608,
+                            "description": "The time when profile was updated"
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings/riskscore/one/{profile_id}": {
+      "get": {
+        "tags": [
+          "Risk Score profiles"
+        ],
+        "summary": "This endpoint provides the Risk Score profile details",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "description": "Profile ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 160,
+                          "description": "Profile identifier"
+                        },
+                        "author": {
+                          "type": "string",
+                          "example": "User for Guide",
+                          "description": "Profile creator"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Profile for guide",
+                          "description": "Profile description"
+                        },
+                        "created_at": {
+                          "type": "integer",
+                          "example": 1564577357,
+                          "description": "Time when profile was created"
+                        },
+                        "updated_at": {
+                          "type": "integer",
+                          "example": 1565952608,
+                          "description": "Time when profile was updated"
+                        },
+                        "is_enabled": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Profile for guide"
+                        },
+                        "signals": {
+                          "type": "array",
+                          "description": "A set of profile settings. It provides the Risk Score values to each entity type and the strength of its influence",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "signal": {
+                                "type": "string",
+                                "enum": [
+                                  "dark_market",
+                                  "dark_service",
+                                  "exchange",
+                                  "trusted_exchange",
+                                  "gambling",
+                                  "ransom",
+                                  "marketplace",
+                                  "miner",
+                                  "mixer",
+                                  "payment",
+                                  "scam",
+                                  "wallet",
+                                  "stolen_coins",
+                                  "illegal_service"
+                                ]
+                              },
+                              "riskscore": {
+                                "type": "number",
+                                "example": 0.25,
+                                "description": "The Risk Score of entity type"
+                              },
+                              "recv": {
+                                "type": "string",
+                                "description": "Strength of influence on the counterparties, which received money from this type",
+                                "enum": [
+                                  "none",
+                                  "low",
+                                  "mid",
+                                  "high"
+                                ]
+                              },
+                              "sent": {
+                                "type": "string",
+                                "description": "Strength of influence on the counterparties, which sent money to this type",
+                                "enum": [
+                                  "none",
+                                  "low",
+                                  "mid",
+                                  "high"
+                                ]
+                              },
+                              "updated_at": {
+                                "type": "integer",
+                                "example": 1565952608,
+                                "description": "The time when particular signal was last updated"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Risk Score profiles"
+        ],
+        "summary": "This endpoint edits the profile description",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "description": "Profile ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Profile for Guide",
+                    "description": "Profile name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Profile for guide",
+                    "description": "The note for the profile"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Risk Score profiles"
+        ],
+        "summary": "This endpoint deletes the Risk Score profile",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "description": "Profile ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings/riskscore/one/{profile_id}/enable": {
+      "post": {
+        "tags": [
+          "Risk Score profiles"
+        ],
+        "summary": "This endpoint enables Risk Score profile",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "description": "Profile ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings/riskscore/one/{profile_id}/{signal}": {
+      "post": {
+        "tags": [
+          "Risk Score profiles"
+        ],
+        "summary": "This endpoint edits Risk Score profile settings for the specified entity type",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "description": "Profile ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "signal",
+            "in": "path",
+            "description": "Signal type",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dark_market",
+                "dark_service",
+                "exchange",
+                "trusted_exchange",
+                "gambling",
+                "ransom",
+                "marketplace",
+                "miner",
+                "mixer",
+                "payment",
+                "scam",
+                "wallet",
+                "stolen_coins",
+                "illegal_service"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "riskscore": {
+                    "type": "number",
+                    "description": "Risk Score value of the entity type",
+                    "example": 0.25
+                  },
+                  "recv": {
+                    "type": "string",
+                    "description": "Strength of influence on the counterparties, which received money from this type",
+                    "enum": [
+                      "none",
+                      "low",
+                      "mid",
+                      "high"
+                    ]
+                  },
+                  "sent": {
+                    "type": "string",
+                    "description": "Strength of influence on the counterparties, which sent money to this type",
+                    "enum": [
+                      "none",
+                      "low",
+                      "mid",
+                      "high"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Auth-Apikey"
+      }
+    },
+    "schemas": {
+      "Owner": {
+        "type": "object",
+        "description": "Owner of the address",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Entity ID",
+            "example": 45976985
+          },
+          "name": {
+            "type": "string",
+            "description": "Entity name",
+            "example": "Huobi"
+          },
+          "slug": {
+            "type": "string",
+            "description": "URL valid entity name",
+            "example": "Huobi"
+          },
+          "type": {
+            "type": "string",
+            "example": "exchange",
+            "description": "entity type, only in address summary"
+          }
+        }
+      },
+      "OwnerTx": {
+        "type": "object",
+        "description": "Owner of the address",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Entity ID",
+            "example": 45976985
+          },
+          "name": {
+            "type": "string",
+            "description": "Entity name",
+            "example": "Huobi"
+          },
+          "slug": {
+            "type": "string",
+            "description": "URL valid entity name",
+            "example": "Huobi"
+          }
+        }
+      },
+      "RiskscoreEntity": {
+        "type": "object",
+        "required": [
+          "signals",
+          "value"
+        ],
+        "description": "The details of risk scoring algorithm are described in separate document",
+        "properties": {
+          "signals": {
+            "type": "object",
+            "description": "Connection with various entities",
+            "required": [
+              "dark_market",
+              "exchange",
+              "gambling",
+              "illegal_service",
+              "marketplace",
+              "miner",
+              "mixer",
+              "payment",
+              "ransom",
+              "scam",
+              "stolen_coins",
+              "trusted_exchange",
+              "wallet"
+            ],
+            "properties": {
+              "dark_market": {
+                "type": "number",
+                "example": 0
+              },
+              "dark_service": {
+                "type": "number",
+                "example": 0
+              },
+              "exchange": {
+                "type": "number",
+                "example": 0.0030272452068617556
+              },
+              "gambling": {
+                "type": "number",
+                "example": 0
+              },
+              "illegal_service": {
+                "type": "number",
+                "example": 0
+              },
+              "marketplace": {
+                "type": "number",
+                "example": 0
+              },
+              "miner": {
+                "type": "integer",
+                "example": 0
+              },
+              "mixer": {
+                "type": "number",
+                "example": 0
+              },
+              "payment": {
+                "type": "number",
+                "example": 0.4944500504540868
+              },
+              "ransom": {
+                "type": "number",
+                "example": 0
+              },
+              "scam": {
+                "type": "number",
+                "example": 0
+              },
+              "stolen_coins": {
+                "type": "number",
+                "example": 0
+              },
+              "trusted_exchange": {
+                "type": "number",
+                "example": 0.5025227043390514
+              },
+              "wallet": {
+                "type": "number",
+                "example": 0.0879369
+              }
+            }
+          },
+          "updated": {
+            "type": "array",
+            "description": "The time when Risk score was calculated based on Global label propagation algorithm (global) and Additional algorithm (fast). Applies only for Address and Entity endpoints",
+            "items": {
+              "type": "object",
+              "properties": {
+                "time": {
+                  "type": "integer"
+                },
+                "type": {
+                  "type": "integer",
+                  "enum": [
+                    "global",
+                    "fast"
+                  ]
+                }
+              },
+              "example": [
+                {
+                  "time": 1534568366,
+                  "type": "global"
+                },
+                {
+                  "time": 1534948561,
+                  "type": "fast"
+                }
+              ]
+            }
+          },
+          "value": {
+            "type": "number",
+            "description": "Risk score value. It varies from 0 (safe) to 1 (risky)",
+            "example": 0.398035
+          }
+        }
+      },
+      "RiskscoreTransaction": {
+        "type": "object",
+        "required": [
+          "signals",
+          "value"
+        ],
+        "description": "The details of risk scoring algorithm are described in separate document",
+        "properties": {
+          "directional": {
+            "type": "object",
+            "description": "Available only for extended risk score",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "signals_avg": {
+                    "$ref": "#/components/schemas/signals"
+                  },
+                  "signals_max": {
+                    "$ref": "#/components/schemas/signals"
+                  },
+                  "value_avg": {
+                    "type": "number",
+                    "example": 0.398035
+                  },
+                  "value_max": {
+                    "type": "number",
+                    "example": 0.398035
+                  }
+                }
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "signals_avg": {
+                    "$ref": "#/components/schemas/signals"
+                  },
+                  "signals_max": {
+                    "$ref": "#/components/schemas/signals"
+                  },
+                  "value_avg": {
+                    "type": "number",
+                    "example": 0.398035
+                  },
+                  "value_max": {
+                    "type": "number",
+                    "example": 0.398035
+                  }
+                }
+              }
+            }
+          },
+          "signals": {
+            "$ref": "#/components/schemas/signals"
+          },
+          "value": {
+            "type": "number",
+            "description": "Risk score value. It varies from 0 (safe) to 1 (risky)",
+            "example": 0.398035
+          }
+        }
+      },
+      "signals": {
+        "type": "object",
+        "description": "Connection with various entities",
+        "required": [
+          "dark_market",
+          "exchange",
+          "gambling",
+          "illegal_service",
+          "marketplace",
+          "miner",
+          "mixer",
+          "payment",
+          "ransom",
+          "scam",
+          "stolen_coins",
+          "trusted_exchange",
+          "wallet"
+        ],
+        "properties": {
+          "dark_market": {
+            "type": "number",
+            "example": 0
+          },
+          "dark_service": {
+            "type": "number",
+            "example": 0
+          },
+          "exchange": {
+            "type": "number",
+            "example": 0.0030272452068617556
+          },
+          "gambling": {
+            "type": "number",
+            "example": 0
+          },
+          "illegal_service": {
+            "type": "number",
+            "example": 0
+          },
+          "marketplace": {
+            "type": "number",
+            "example": 0
+          },
+          "miner": {
+            "type": "integer",
+            "example": 0
+          },
+          "mixer": {
+            "type": "number",
+            "example": 0
+          },
+          "payment": {
+            "type": "number",
+            "example": 0.4944500504540868
+          },
+          "ransom": {
+            "type": "number",
+            "example": 0
+          },
+          "scam": {
+            "type": "number",
+            "example": 0
+          },
+          "stolen_coins": {
+            "type": "number",
+            "example": 0
+          },
+          "trusted_exchange": {
+            "type": "number",
+            "example": 0.5025227043390514
+          },
+          "wallet": {
+            "type": "number",
+            "example": 0.0879369
+          }
+        }
+      },
+      "Meta": {
+        "description": "Service metadata",
+        "type": "object",
+        "required": [
+          "error_code",
+          "error_message",
+          "server_time",
+          "validation_errors"
+        ],
+        "properties": {
+          "calls_left": {
+            "type": "integer"
+          },
+          "calls_used": {
+            "type": "integer"
+          },
+          "error_code": {
+            "type": "integer"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "riskscore_profile": {
+            "description": "The Risk Score profile selected while calculating the RIsk Score",
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 150
+              },
+              "name": {
+                "type": "string",
+                "example": "default"
+              }
+            }
+          },
+          "server_time": {
+            "type": "integer"
+          },
+          "validation_errors": {
+            "type": "object"
+          }
+        }
+      },
+      "AddressTxs": {
+        "type": "object",
+        "description": "address transactions",
+        "required": [
+          "block_time",
+          "confirmations",
+          "count_in",
+          "count_out",
+          "hash",
+          "pool_time",
+          "situational",
+          "total_in",
+          "total_out"
+        ],
+        "properties": {
+          "block_time": {
+            "type": "integer",
+            "description": "The time when transaction was included to the blockchain",
+            "example": 1522936961
+          },
+          "confirmations": {
+            "type": "integer",
+            "example": 1,
+            "description": "The number of blocks included to the blockchain after the block with the transaction"
+          },
+          "count_in": {
+            "type": "integer",
+            "example": 145,
+            "description": "Amount of inputs"
+          },
+          "count_out": {
+            "type": "integer",
+            "example": 2,
+            "description": "Amount of outputs"
+          },
+          "hash": {
+            "type": "string",
+            "description": "Transaction hash",
+            "example": "53f9ff9e96444837c6c7b54332cfd4ca0bc0d6756c189c71881be286a4f35fbb"
+          },
+          "pool_time": {
+            "type": "integer",
+            "description": "The time when transaction was received by a node",
+            "example": 1522935290
+          },
+          "situational": {
+            "type": "object",
+            "required": [
+              "delta"
+            ],
+            "properties": {
+              "delta": {
+                "type": "integer",
+                "description": "The difference between address balance before and after the transaction",
+                "example": 36500000000
+              }
+            }
+          },
+          "total_in": {
+            "type": "integer",
+            "example": 36775387508,
+            "description": "Total sum of inputs"
+          },
+          "total_out": {
+            "type": "integer",
+            "example": 36775252508,
+            "description": "Total sum of outputs"
+          }
+        }
+      },
+      "TxSummary": {
+        "type": "object",
+        "description": "Transaction summary",
+        "required": [
+          "additional",
+          "block",
+          "block_time",
+          "confirmations",
+          "count_in",
+          "count_out",
+          "hash",
+          "inputs",
+          "outputs",
+          "pool_time",
+          "size",
+          "total_in",
+          "total_out",
+          "weight"
+        ],
+        "properties": {
+          "additional": {
+            "$ref": "#/components/schemas/Additional"
+          },
+          "block": {
+            "type": "object",
+            "description": "Identifiers of block, in which transaction was included",
+            "required": [
+              "hash",
+              "height"
+            ],
+            "properties": {
+              "hash": {
+                "type": "string",
+                "example": "0000000000000000001c9b6d65a8cd4d26decfb4edfa865c3af6d918952102f9"
+              },
+              "height": {
+                "type": "integer",
+                "example": 516586
+              }
+            }
+          },
+          "block_time": {
+            "type": "integer",
+            "description": "Time when transaction was included to the blockchain",
+            "example": 1522843960
+          },
+          "confirmations": {
+            "type": "integer",
+            "description": "Amount of blocks mined afterwards",
+            "example": 154
+          },
+          "count_in": {
+            "type": "integer",
+            "description": "Amount of inputs",
+            "example": 0
+          },
+          "count_out": {
+            "type": "integer",
+            "description": "Amount of outputs",
+            "example": 3
+          },
+          "hash": {
+            "type": "string",
+            "example": "b42df1171473f901a5a24ee7bb2cee969b18d5f724edce6857946290282f56f4"
+          },
+          "inputs": {
+            "type": "array",
+            "description": "Inputs summary",
+            "items": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "type": "string",
+                  "description": "Address ID",
+                  "example": "16x2Aqif1657xQkNbjfDRmD88BbGyQjiz9"
+                },
+                "amount": {
+                  "type": "integer",
+                  "description": "Amount of funds in input",
+                  "example": 131677
+                },
+                "amount_usd": {
+                  "type": "integer",
+                  "description": "Amount in USD",
+                  "example": 1289
+                },
+                "owner": {
+                  "$ref": "#/components/schemas/OwnerTx"
+                },
+                "pos": {
+                  "type": "integer",
+                  "description": "The number of corresponding output in previous transaction",
+                  "example": 3
+                },
+                "prev": {
+                  "type": "string",
+                  "description": "Previous transaction hash",
+                  "example": "629995015e3d783699ee768f268716d59dc5add8b67038a4a3f17b2a84d8cff8"
+                },
+                "riskscore": {
+                  "type": "number",
+                  "example": 0.086
+                }
+              }
+            }
+          },
+          "outputs": {
+            "type": "array",
+            "description": "Outputs summary",
+            "items": {
+              "type": "object",
+              "required": [
+                "address",
+                "amount"
+              ],
+              "properties": {
+                "address": {
+                  "type": "string",
+                  "description": "Address ID",
+                  "example": "1Ft7ySDeMdpgtvtYxpQPpnDqDnw7ZKZgeL"
+                },
+                "amount": {
+                  "type": "integer",
+                  "description": "Amount of funds in the output",
+                  "example": 582090
+                },
+                "amount_usd": {
+                  "description": "Amount in USD",
+                  "type": "integer",
+                  "example": 5698
+                },
+                "next": {
+                  "type": "string",
+                  "description": "Next transaction hash",
+                  "example": "44727772f3f393f759f26507684e995b9eb101c29adf0c6e62bd189126d74304"
+                },
+                "owner": {
+                  "$ref": "#/components/schemas/OwnerTx"
+                },
+                "pos": {
+                  "type": "integer",
+                  "description": "The number of corresponding input in next transaction (applies only for outputs which were spent later)",
+                  "example": 1
+                },
+                "riskscore": {
+                  "type": "number",
+                  "example": 0.12
+                }
+              }
+            }
+          },
+          "pool_time": {
+            "type": "integer",
+            "description": "Date when transaction was received by a node",
+            "example": 1522843466
+          },
+          "riskscore": {
+            "$ref": "#/components/schemas/RiskscoreTransaction"
+          },
+          "size": {
+            "type": "integer",
+            "example": 371,
+            "description": "Transaction size, in bytes"
+          },
+          "total_in": {
+            "type": "integer",
+            "description": "Sum of all inputs in the transaction",
+            "example": 390110374
+          },
+          "total_in_usd": {
+            "type": "integer",
+            "description": "Sum of all inputs in USD",
+            "example": 3818576
+          },
+          "total_out": {
+            "type": "integer",
+            "description": "Sum of all outputs in the transaction",
+            "example": 389965717
+          },
+          "total_out_usd": {
+            "type": "integer",
+            "description": "Sum of all outputs in USD",
+            "example": 3817160
+          },
+          "untangled": {
+            "type": "string",
+            "example": "simple",
+            "description": "Transaction type according to internal classification"
+          },
+          "weight": {
+            "type": "integer",
+            "description": "Transaction weight",
+            "example": 3260
+          }
+        }
+      },
+      "Additional": {
+        "type": "object",
+        "description": "applies only for coinbase transactions",
+        "properties": {
+          "coinbase": {
+            "type": "string",
+            "example": "03eae107fabe6d6d9d01f08ab5744a47ae3350bde35cd929265fa7fe76dabd03132307c6dd86d55a010000000000000026650700baed11914700007e4a052f736c7573682f"
+          },
+          "miner": {
+            "type": "string",
+            "description": "Miner name",
+            "example": "SlushPool"
+          },
+          "reward": {
+            "type": "integer",
+            "description": "Reward for the mined block",
+            "example": 1250000000
+          }
+        }
+      }
+    }
+  }
+}

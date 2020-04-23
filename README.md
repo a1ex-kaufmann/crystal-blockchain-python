@@ -2,7 +2,15 @@
 
 Crystal-blockchain python wrap
 
-### Examples of using
+- [X] BTC
+- [X] ETH
+- [X] LTC
+- [X] BCH
+- [ ] JOYS - not supported
+- [ ] ERC20-USDT - not supported, only OMNI Tether (need to [check](https://medium.com/meetbitfury/crystal-analytics-adds-erc-20-erc-721-tokens-support-5cafa3294fb6))
+- [ ] BNB - not supported
+
+### Examples
 
 0. go to `/examples`
 1. `cp ./config.example.py ./config.py`
@@ -12,10 +20,13 @@ Crystal-blockchain python wrap
 ### Info
 
 - API DOCS https://expert.crystalblockchain.com/docs/api
+- EXTENDED API DOCS ./UserAPI.json
 - RISK SCORE GUIDE https://expert.crystalblockchain.com/docs/riskscore-guide
 - RISK SCORE PROFILES https://expert.crystalblockchain.com/user/profile (for creating new profiles)
 - Each currency has its own unique endpoint (ex. BTC -> `https://apibtc.crystalblockchain.com`)
 - See methods docstrings
+
+Новый способ определить riskscore смотреть в примере `example_explorer.py` 
 
 ## Using
 
@@ -61,6 +72,22 @@ crystal_btc.batch_transfers.get_txs(...)        | POST /monitor/batch/txs
 crystal_btc.batch_transfers.get_txs_bounds()    | GET /monitor/batch/tx-bounds
 crystal_btc.batch_transfers.edit_txs(...)       | POST /monitor/batch/txs/execute
 ``` 
+
+### Entity
+```
+crystal_btc.entity.get_entity_list()         | GET /entity/one/{slug}
+crystal_btc.entity.get_entity_summary(...)    | GET​/entity/list
+``` 
+
+### Explorer
+```
+crystal_btc.explorer.get_address_summary(...)  | GET /explorer/address/{address_hash}
+crystal_btc.explorer.get_tx_summary(...)       | GET /explorer/tx/{tx_hash}
+``` 
+
+### Address and tx examples
+see https://blockchair.com/
+
 
 ### Author
 alexey.zhdanov for Joys Digital

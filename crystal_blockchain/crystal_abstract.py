@@ -2,7 +2,7 @@ import requests
 
 from abc import ABC
 
-from .modules import Profile, Customer, Transfers, BatchTransfers
+from .modules import Profile, Customer, Transfers, BatchTransfers, Entity, Explorer
 
 
 class Crystal(ABC):
@@ -15,12 +15,16 @@ class Crystal(ABC):
         'customer': Customer,
         'transfers': Transfers,
         'batch_transfers': BatchTransfers,
+        'entity': Entity,
+        'explorer': Explorer
     }
 
     profile: Profile
     customer: Customer
     transfers: Transfers
     batch_transfers: BatchTransfers
+    entity: Entity
+    explorer: Explorer
 
     def __init__(self, api_key):
         self.__api_key = api_key

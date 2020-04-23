@@ -178,6 +178,8 @@ class Profile(Module):
                   'riskscore_profile': {'id': 111, 'name': 'test'},
                   'server_time': 1585298666}}
         """
+        check_type(profile_id, int)
+
         # signal value validation
         signal = signal.lower()
         if signal and (signal not in self._SIGNAL_LIST):
