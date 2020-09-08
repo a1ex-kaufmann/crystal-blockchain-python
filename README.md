@@ -1,4 +1,4 @@
-# joys-crystal-blockchain
+# crystal-blockchain-python
 
 Crystal-blockchain python wrap
 
@@ -90,4 +90,4 @@ see https://blockchair.com/
 
 
 ### Author
-alexey.zhdanov for Joys Digital
+alexey.zhdanov
